@@ -1,0 +1,67 @@
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE PolyKinds #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
+
+module ML.ML where
+
+import Data.Proxy
+import Numeric.Natural
+
+data Nat = Z | S Nat
+
+data SNat n where
+    SZ :: SNat Z
+    SS :: SNat n -> SNat (S n)
+
+type family TF (n :: Nat) :: *
+type instance TF Z = Int
+type instance TF (S n) = Int -> TF n
+
+one = Z
+two = S one
+three = S two
+four = S three
+five = S four
+
+data a :> b
+infixr 9 :>
+
+data Input
+data Result
+
+data HypResult = ResReal Double | ResBool Bool | ResLabel String deriving Show
+
+type family Hypothesis l :: *
+type instance Hypothesis Result = HypResult
+type instance Hypothesis (Input :> r) = Double -> Hypothesis r
+
+class HasHypothesis l where
+    hyp :: Proxy l -> Hypothesis l -> [Double] -> Maybe HypResult
+
+instance HasHypothesis Result where
+    hyp _ r [] = Just r
+    hyp _ _ _ = Nothing
+
+instance HasHypothesis r => HasHypothesis (Input :> r) where
+    hyp _ h (x:xs) = hyp (Proxy :: Proxy r) (h x) xs
+    hyp _ _ _ = Nothing
+
+hypr :: HasHypothesis l => Proxy l -> Hypothesis l -> [Double] -> Maybe Double
+hypr p h xs = case (hyp p h xs) of
+    Just (ResReal r) -> Just r
+    _ -> Nothing
+
+hypb :: HasHypothesis l => Proxy l -> Hypothesis l -> [Double] -> Maybe Bool
+hypb p h xs = case (hyp p h xs) of
+    Just (ResBool r) -> Just r
+    _ -> Nothing
+
+hypl :: HasHypothesis l => Proxy l -> Hypothesis l -> [Double] -> Maybe String
+hypl p h xs = case (hyp p h xs) of
+    Just (ResLabel r) -> Just r
+    _ -> Nothing
