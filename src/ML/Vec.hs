@@ -22,3 +22,9 @@ fromList _ _ = Nothing
 toList :: Vec a n -> [a]
 toList Nil = []
 toList (x :- xs) = x:(toList xs)
+
+dot :: Num a => Vec a n -> Vec a n -> a
+dot va vb = sum $ zipWith (*) ax bx
+    where
+    ax = toList va
+    bx = toList vb
