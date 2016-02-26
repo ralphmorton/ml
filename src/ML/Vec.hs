@@ -1,4 +1,5 @@
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE KindSignatures #-}
 
@@ -8,35 +9,48 @@ import ML.Nat
 
 import Control.Applicative ((<$>))
 
-data Vec (a :: *) (n :: Nat) where
-    Nil :: Vec a Z
-    (:-) :: a -> Vec a n -> Vec a (S n)
+data Vec (n :: Nat) (a :: *) where
+    Nil :: Vec Z a
+    (:-) :: a -> Vec n a -> Vec (S n) a
 
-instance Show a => Show (Vec a n) where
+instance Functor (Vec n) where
+    fmap f Nil = Nil
+    fmap f (x :- xs) = f x :- fmap f xs
+
+instance Foldable (Vec n) where
+    foldr f s Nil = s
+    foldr f s (x :- xs) = foldr f (f x s) xs
+
+instance Show a => Show (Vec n a) where
     show Nil = "[]"
     show (a :- r) = show a ++ " :- " ++ show r
 
 infixr 5 :-
 
-fromList :: SNat n -> [a] -> Maybe (Vec a n)
+fromList :: SNat n -> [a] -> Maybe (Vec n a)
 fromList SZ _ = Just Nil
 fromList (SS n) (x:xs) = (x :-) <$> fromList n xs
 fromList _ _ = Nothing
 
-toList :: Vec a n -> [a]
+toList :: Vec n a -> [a]
 toList Nil = []
 toList (x :- xs) = x:(toList xs)
 
-dot :: Num a => Vec a n -> Vec a n -> a
-dot va vb = sum $ zipWith (*) ax bx
-    where
-    ax = toList va
-    bx = toList vb
+vzip :: (a -> b -> c) -> Vec n a -> Vec n b -> Vec n c
+vzip _ Nil _ = Nil
+vzip f (x :- xs) (y :- ys) = f x y :- vzip f xs ys
 
-mul :: Num a => a -> Vec a n -> Vec a n
-mul s Nil = Nil
-mul s (x :- xs) = (s * x) :- mul s xs
+vlen :: Vec n a -> Int
+vlen = foldr (\_ x -> x + 1) 0
 
-sub :: Num a => Vec a n -> Vec a n -> Vec a n
-sub Nil Nil = Nil
-sub (x :- xs) (y :- ys) = (x - y) :- sub xs ys
+vdot :: Num a => Vec n a -> Vec n a -> a
+vdot v1 v2 = vsum $ vzip (*) v1 v2
+
+vmul :: Num a => a -> Vec n a -> Vec n a
+vmul a = fmap (*a)
+
+vsub :: Num a => Vec n a -> Vec n a -> Vec n a
+vsub = vzip (-)
+
+vsum :: Num a => Vec n a -> a
+vsum = foldr (+) 0

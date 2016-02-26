@@ -7,5 +7,5 @@ module ML.Regression(
 import ML.Nat
 import ML.Vec
 
-linearRegression :: Num a => Vec a n -> Vec a n -> a
-linearRegression = dot
+linearRegression :: Num a => Vec n a -> Vec n a -> a
+linearRegression = vdot
