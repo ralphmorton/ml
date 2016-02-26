@@ -15,7 +15,10 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     ML
+  exposed-modules:     ML.Nat
+                     , ML.Vec
+                     , ML.Regression
+                     , ML.GradientDescent
   build-depends:       base >= 4.7 && < 5
   default-language:    Haskell2010
 

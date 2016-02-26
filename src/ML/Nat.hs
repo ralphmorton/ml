@@ -5,7 +5,7 @@ module ML.Nat where
 
 import Numeric.Natural
 
-data Nat = Z | S Nat
+data Nat = Z | S Nat deriving Show
 
 data SNat n where
     SZ :: SNat Z

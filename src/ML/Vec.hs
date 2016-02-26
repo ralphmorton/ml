@@ -12,6 +12,10 @@ data Vec (a :: *) (n :: Nat) where
     Nil :: Vec a Z
     (:-) :: a -> Vec a n -> Vec a (S n)
 
+instance Show a => Show (Vec a n) where
+    show Nil = "[]"
+    show (a :- r) = show a ++ " :- " ++ show r
+
 infixr 5 :-
 
 fromList :: SNat n -> [a] -> Maybe (Vec a n)
@@ -28,3 +32,11 @@ dot va vb = sum $ zipWith (*) ax bx
     where
     ax = toList va
     bx = toList vb
+
+mul :: Num a => a -> Vec a n -> Vec a n
+mul s Nil = Nil
+mul s (x :- xs) = (s * x) :- mul s xs
+
+sub :: Num a => Vec a n -> Vec a n -> Vec a n
+sub Nil Nil = Nil
+sub (x :- xs) (y :- ys) = (x - y) :- sub xs ys
