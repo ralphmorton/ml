@@ -54,3 +54,6 @@ vsub = vzip (-)
 
 vsum :: Num a => Vec n a -> a
 vsum = foldr (+) 0
+
+vmax :: Ord a => Vec (S n) a -> a
+vmax (x :- xs) = foldr (max) x xs
